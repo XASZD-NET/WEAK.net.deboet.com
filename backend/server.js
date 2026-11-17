@@ -40,18 +40,19 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// ตรวจสอบสถานะเซิร์ฟเวอร์
-app.get('/', (req, res) => {
-    res.send('Cyber Lab OS Backend is running successfully!');
+const PORT = process.env.PORT || 10000;
+// ส่วนท้ายของไฟล์ backend/server.js
+const path = require('path');
+
+// เสิร์ฟไฟล์ static จากโฟลเดอร์ frontend
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+// สำหรับจัดการเส้นทางทั้งหมดให้โหลดหน้าเว็บ index.html
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 const PORT = process.env.PORT || 10000;
-app.get(/.*/, (_req, res) => {
-  res.sendFile(
-    path.join(__dirname, "..", "frontend", "index.html")
-  );
-});
-
 app.listen(PORT, () => {
   console.log(`CYBER LAB OS running on port ${PORT}`);
 });
