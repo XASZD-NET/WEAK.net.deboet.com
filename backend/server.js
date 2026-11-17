@@ -46,6 +46,12 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
+app.get(/.*/, (_req, res) => {
+  res.sendFile(
+    path.join(__dirname, "..", "frontend", "index.html")
+  );
+});
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`CYBER LAB OS running on port ${PORT}`);
 });
