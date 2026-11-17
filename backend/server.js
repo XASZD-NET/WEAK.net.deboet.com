@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
@@ -9,7 +10,7 @@ app.use(express.json());
 
 // ตรวจสอบและกำหนดค่า Gemini API โดยใช้ SDK ล่าสุด
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 // Endpoint สำหรับรับข้อความแชทจาก Frontend
 app.post('/api/chat', async (req, res) => {
@@ -26,7 +27,7 @@ app.post('/api/chat', async (req, res) => {
             contents: message,
         });
 
-        // ส่งคำตอบกลับไปยัง Frontend (ขึ้นอยู่กับโครงสร้างผลลัพธ์ของ SDK ล่าสุด)
+        // ส่งคำตอบกลับไปยัง Frontend
         const reply = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text || "ขออภัยครับ ไม่สามารถประมวลผลคำตอบได้ในขณะนี้";
 
         res.json({ reply });
@@ -40,15 +41,11 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 10000;
-// ส่วนท้ายของไฟล์ backend/server.js
-const path = require('path');
-
 // เสิร์ฟไฟล์ static จากโฟลเดอร์ frontend
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
-// สำหรับจัดการเส้นทางทั้งหมดให้โหลดหน้าเว็บ index.html
-app.get('*', (_req, res) => {
+// จัดการเส้นทางทั้งหมดให้โหลดหน้าเว็บ index.html (ใช้ /.*/ แบบที่รันผ่าน)
+app.get(/.*/, (_req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
