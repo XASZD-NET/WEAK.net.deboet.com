@@ -10,7 +10,7 @@ app.use(express.json());
 
 // ตรวจสอบและกำหนดค่า Gemini API โดยใช้ SDK ล่าสุด
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const modelName = process.env.GEMINI_MODEL || 'gemini-2.7';
 
 // Endpoint สำหรับรับข้อความแชทจาก Frontend
 app.post('/api/chat', async (req, res) => {
