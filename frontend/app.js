@@ -1,30 +1,242 @@
-const pages = [...document.querySelectorAll(".page")];
-const titles = {overview:"ภาพรวม",terminal:"Terminal",devices:"อุปกรณ์จำลอง",security:"Security Lab",editor:"Code Editor"};
-function showPage(name){pages.forEach(p=>p.classList.toggle("active-page",p.id===name));document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active",n.dataset.page===name));document.getElementById("page-title").textContent=titles[name]||"ภาพรวม";}
-document.querySelectorAll(".nav").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.goto)));
+let currentEmail = '';
+let lastUserPrompt = '';
 
-const termOut=document.getElementById("term-output");
-const termForm=document.getElementById("term-form");
-const termInput=document.getElementById("term-input");
-const commands={
- help:"คำสั่งที่รองรับ:\n help                 แสดงคำสั่ง\n lab status           ดูสถานะแล็บ\n device list          แสดงอุปกรณ์จำลอง\n network inspect      ดูข้อมูลเครือข่ายตัวอย่าง\n security audit       แสดงรายการตรวจสอบตัวอย่าง\n clear                ล้างหน้าจอ",
- "lab status":"สถานะ: พร้อมใช้งาน\nโหมด: SIMULATION ONLY\nการเชื่อมต่ออุปกรณ์จริง: ปิดใช้งานใน V1",
- "device list":"Android Lab 01   192.0.2.10   DEMO ONLINE\nWindows Lab 02   192.0.2.20   DEMO ONLINE\nLinux Lab 03     192.0.2.30   DEMO OFFLINE",
- "network inspect":"Lab Network: 192.0.2.0/24 (เอกสารตัวอย่าง)\nจำลองโหนด: 3\nสถานะ: ไม่มีการสแกนเครือข่ายจริง",
- "security audit":"ตัวอย่างรายการตรวจสอบ:\n[PASS] ตรวจสอบการตั้งค่า MFA\n[INFO] ทบทวนสิทธิ์ผู้ใช้\n[INFO] ตรวจสอบการเก็บ API secrets\nผลนี้เป็นข้อมูลสาธิต ไม่ใช่ผลสแกนจริง"
+// ตรวจสอบสถานะการล็อกอินเมื่อเปิดเว็บ
+window.onload = () => {
+    const savedUser = localStorage.getItem('script_ai_user');
+    if (savedUser) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('mainPlatform').classList.remove('hidden');
+        document.getElementById('displayUser').textContent = `👤 ${savedUser}`;
+    }
+    loadSavedTheme();
 };
-termForm.addEventListener("submit",e=>{e.preventDefault();const cmd=termInput.value.trim();if(!cmd)return;termOut.textContent += `\nlab@cyber:~$ ${cmd}\n`;if(cmd==="clear"){termOut.textContent="";}else{termOut.textContent += (commands[cmd]||"ไม่รู้จักคำสั่งนี้ พิมพ์ help เพื่อดูคำสั่งที่รองรับ")+"\n";}termInput.value="";termOut.scrollTop=termOut.scrollHeight;});
 
-document.getElementById("save-code").addEventListener("click",()=>{const lang=document.getElementById("language").value;const ext={JavaScript:"js",Python:"py",Lua:"lua",Luau:"luau",Rust:"rs",Go:"go",HTML:"html",CSS:"css"}[lang]||"txt";const blob=new Blob([document.getElementById("code-area").value],{type:"text/plain"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`cyber-lab-code.${ext}`;a.click();URL.revokeObjectURL(a.href);});
+function showError(msg) {
+    document.getElementById('authError').textContent = msg;
+}
 
-const launcher=document.getElementById("assistant-launcher"),assistant=document.getElementById("assistant");
-launcher.addEventListener("click",()=>assistant.classList.toggle("open"));
-document.getElementById("close-assistant").addEventListener("click",()=>assistant.classList.remove("open"));
-const chatForm=document.getElementById("chat-form"),chatInput=document.getElementById("chat-input"),messages=document.getElementById("chat-messages"),sendBtn=document.getElementById("send-chat");
-const history=[];
-function addBubble(text,role="ai",extra=""){const el=document.createElement("div");el.className=`bubble ${role} ${extra}`;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el;}
-chatForm.addEventListener("submit",async e=>{e.preventDefault();const message=chatInput.value.trim();if(!message)return;addBubble(message,"user");chatInput.value="";chatInput.disabled=true;sendBtn.disabled=true;const pending=addBubble("กำลังส่งคำถามให้ Gemini...","ai");
-try{const response=await fetch("/api/assistant",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message,history})});const data=await response.json();pending.remove();if(!response.ok){addBubble(data.error+(data.help?`\n${data.help}`:""),"ai","error");}else{addBubble(data.answer||"ไม่ได้รับข้อความตอบกลับ","ai");history.push({role:"user",text:message},{role:"model",text:data.answer||""});if(history.length>12)history.splice(0,2);}}
-catch(_){pending.remove();addBubble("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ตและลองอีกครั้ง","ai","error");}
-finally{chatInput.disabled=false;sendBtn.disabled=false;chatInput.focus();}});
+// 1. ส่งรหัส OTP
+async function sendOTP() {
+    const email = document.getElementById('regEmail').value.trim();
+    if (!email || !email.includes('@')) {
+        return showError('กรุณากรอกอีเมลให้ถูกต้องก่อนดำเนินการ');
+    }
+
+    showError('กำลังส่งรหัส OTP ไปยังอีเมลของคุณ...');
+    try {
+        const res = await fetch('/api/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            currentEmail = email;
+            showError('');
+            document.getElementById('stepEmail').classList.add('hidden');
+            document.getElementById('stepOtp').classList.remove('hidden');
+            document.getElementById('regOtp').focus();
+        } else {
+            showError(data.error);
+        }
+    } catch (err) {
+        showError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อส่ง OTP ได้');
+    }
+}
+
+// 2. ตรวจสอบ OTP อัตโนมัติเมื่อกรอกครบ 6 หลัก
+function autoCheckOTP() {
+    const otpVal = document.getElementById('regOtp').value.trim();
+    if (otpVal.length === 6) {
+        verifyOTP();
+    }
+}
+
+async function verifyOTP() {
+    const otp = document.getElementById('regOtp').value.trim();
+    if (otp.length !== 6) {
+        return showError('กรุณากรอกรหัส OTP ให้ครบ 6 หลัก');
+    }
+
+    try {
+        const res = await fetch('/api/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentEmail, otp })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showError('');
+            document.getElementById('stepOtp').classList.add('hidden');
+            document.getElementById('stepDetails').classList.remove('hidden');
+        } else {
+            showError(data.error);
+        }
+    } catch (err) {
+        showError('เกิดข้อผิดพลาดในการตรวจสอบ OTP');
+    }
+}
+
+// 3. ยืนยันข้อมูลการสมัครสมาชิกทั้งหมด
+async function completeRegistration() {
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('regConfirmPassword').value;
+    const consent1 = document.getElementById('consent1').checked;
+    const consent2 = document.getElementById('consent2').checked;
+
+    if (!username) return showError('กรุณากรอกชื่อผู้ใช้');
+    if (password.length < 8 || password.length > 12) {
+        return showError('รหัสผ่านต้องมีความยาว 8 ถึง 12 หลักเท่านั้น');
+    }
+    if (password !== confirmPassword) {
+        return showError('รหัสผ่านทั้ง 2 ช่องไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
+    }
+    if (!consent1 || !consent2) {
+        return showError('กรุณากดยอมรับเงื่อนไขทั้ง 2 ข้อก่อนเข้าใช้งาน');
+    }
+
+    try {
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentEmail, username, password, consent1, consent2 })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            localStorage.setItem('script_ai_user', username);
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+
+            // จำลองการโหลดแพลตฟอร์ม 2.5 วินาที แล้วเปิดหน้าใช้งาน
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('mainPlatform').classList.remove('hidden');
+                document.getElementById('displayUser').textContent = `👤 ${username}`;
+            }, 2500);
+        } else {
+            showError(data.error);
+        }
+    } catch (err) {
+        showError('ไม่สามารถบันทึกข้อมูลสมาชิกได้');
+    }
+}
+
+// 4. ระบบแชทและการกดยืนยันสร้างสคริปต์
+function handleEnter(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+async function sendMessage(isConfirmed = false) {
+    const inputField = document.getElementById('userInput');
+    const messageText = isConfirmed ? lastUserPrompt : inputField.value.trim();
+
+    if (!messageText) return;
+
+    if (!isConfirmed) {
+        lastUserPrompt = messageText;
+        appendMessage(messageText, 'user-message');
+        inputField.value = '';
+    } else {
+        appendMessage('✅ ยืนยัน: เริ่มสร้างสคริปต์ได้เลย!', 'user-message');
+    }
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: messageText, confirmed: isConfirmed })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            appendMessage(data.reply, 'ai-message', data.askConfirmation);
+        } else {
+            appendMessage('⚠️ ' + (data.error || 'เกิดข้อผิดพลาดในการติดต่อ AI'), 'ai-message');
+        }
+    } catch (error) {
+        appendMessage('⚠️ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้', 'ai-message');
+    }
+}
+
+function appendMessage(text, className, showConfirmBtn = false) {
+    const chatContainer = document.getElementById('chatContainer');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${className}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = className === 'user-message' ? '👤' : '🤖';
+
+    const content = document.createElement('div');
+    content.className = 'content';
+    content.textContent = text;
+
+    // หาก AI ถามยืนยัน ให้สร้างปุ่มกดเริ่มสร้างอัตโนมัติ
+    if (showConfirmBtn) {
+        const btnWrap = document.createElement('div');
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'confirm-action-btn';
+        confirmBtn.textContent = '🚀 เริ่มสร้างทันที';
+        confirmBtn.onclick = () => {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'กำลังสร้าง...';
+            sendMessage(true);
+        };
+        btnWrap.appendChild(confirmBtn);
+        content.appendChild(btnWrap);
+    }
+
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(content);
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// 5. ระบบตั้งค่าเปลี่ยนสีหน้าเว็บ
+function toggleThemePanel() {
+    document.getElementById('themePanel').classList.toggle('hidden');
+}
+
+function updateTheme() {
+    const accent = document.getElementById('accentColorPicker').value;
+    const bg = document.getElementById('bgColorPicker').value;
+    const surface = document.getElementById('surfaceColorPicker').value;
+    const text = document.getElementById('textColorPicker').value;
+
+    document.documentElement.style.setProperty('--accent-color', accent);
+    document.documentElement.style.setProperty('--bg-color', bg);
+    document.documentElement.style.setProperty('--surface-color', surface);
+    document.documentElement.style.setProperty('--text-color', text);
+
+    localStorage.setItem('script_ai_theme', JSON.stringify({ accent, bg, surface, text }));
+}
+
+function loadSavedTheme() {
+    const saved = localStorage.getItem('script_ai_theme');
+    if (saved) {
+        const { accent, bg, surface, text } = JSON.parse(saved);
+        document.getElementById('accentColorPicker').value = accent;
+        document.getElementById('bgColorPicker').value = bg;
+        document.getElementById('surfaceColorPicker').value = surface;
+        document.getElementById('textColorPicker').value = text;
+        updateTheme();
+    }
+}
+
+function resetTheme() {
+    localStorage.removeItem('script_ai_theme');
+    document.getElementById('accentColorPicker').value = '#38bdf8';
+    document.getElementById('bgColorPicker').value = '#0b0f19';
+    document.getElementById('surfaceColorPicker').value = '#111827';
+    document.getElementById('textColorPicker').value = '#e2e8f0';
+    updateTheme();
+                                       }
