@@ -1,88 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCRIPT AI - Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
 
-<script src="/app.js"></script>
+    <!-- ส่วนที่ 1: ระบบสมัครสมาชิกและยืนยันตัวตน -->
+    <div id="authScreen" class="screen-overlay">
+        <div class="auth-box">
+            <h2>⚡ SCRIPT AI REGISTRATION</h2>
+            <p class="subtitle">กรุณาลงทะเบียนอีเมลเพื่อเข้าใช้งานระบบ AI เต็มรูปแบบ</p>
 
-<script>
-(() => {
-  const form = document.getElementById("chat-form");
-  const input = document.getElementById("chat-input");
-  const messages = document.getElementById("chat-messages");
-  const sendButton = document.getElementById("send-chat");
+            <!-- ขั้นตอนที่ 1: กรอกอีเมล -->
+            <div id="stepEmail" class="auth-step">
+                <label>อีเมลของคุณ (Email)</label>
+                <input type="email" id="regEmail" placeholder="example@gmail.com">
+                <button onclick="sendOTP()" id="btnSendOtp" class="primary-btn">ส่งรหัส OTP (1 นาที)</button>
+            </div>
 
-  if (!form || !input || !messages || !sendButton) return;
+            <!-- ขั้นตอนที่ 2: กรอก OTP 6 หลัก (ตรวจสอบอัตโนมัติ) -->
+            <div id="stepOtp" class="auth-step hidden">
+                <label>กรอกรหัส OTP 6 หลัก (หมดอายุใน 10 นาที)</label>
+                <input type="text" id="regOtp" maxlength="6" placeholder="000000" oninput="autoCheckOTP()">
+                <div class="btn-row">
+                    <button onclick="verifyOTP()" class="primary-btn">ยืนยัน OTP</button>
+                    <button onclick="sendOTP()" class="secondary-btn">ขอรหัสใหม่</button>
+                </div>
+            </div>
 
-  function addMessage(text, type = "ai") {
-    const bubble = document.createElement("div");
-    bubble.className = "bubble " + type;
-    bubble.textContent = text;
-    messages.appendChild(bubble);
-    messages.scrollTop = messages.scrollHeight;
-    return bubble;
-  }
+            <!-- ขั้นตอนที่ 3: ตั้งชื่อผู้ใช้ รหัสผ่าน 8-12 หลัก และกดยินยอม 2 ข้อ -->
+            <div id="stepDetails" class="auth-step hidden">
+                <label>ชื่อผู้ใช้ (Username)</label>
+                <input type="text" id="regUsername" placeholder="ตั้งชื่อผู้ใช้ของคุณ">
 
-  // ใช้ capture เพื่อป้องกันตัวจัดการแชตเดิม
-  // ใน app.js ทำงานซ้ำกับตัวใหม่นี้
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    event.stopImmediatePropagation();
+                <label>รหัสผ่าน (8 - 12 หลัก)</label>
+                <input type="password" id="regPassword" minlength="8" maxlength="12" placeholder="กรอกรหัสผ่าน 8-12 หลัก">
 
-    const question = input.value.trim();
+                <label>ยืนยันรหัสผ่านอีกครั้ง</label>
+                <input type="password" id="regConfirmPassword" minlength="8" maxlength="12" placeholder="กรอกรหัสผ่านอีกครั้ง">
 
-    if (!question || sendButton.disabled) return;
+                <div class="consent-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consent1">
+                        <span>ข้าพเจ้ายินยอมรับการแจ้งเตือนและปฏิบัติตามเงื่อนไขการใช้งานแพลตฟอร์ม Script AI</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consent2">
+                        <span>ข้าพเจ้ายินยอมและรับทราบข้อกฎหมายลิขสิทธิ์ หากดัดแปลงหรือขโมยทรัพย์สินทางอิเล็กทรอนิกส์จะถูกดำเนินคดีตามกฎหมาย (จำคุก 10 ปีขึ้นไปหรือทั้งจำทั้งปรับ)</span>
+                    </label>
+                </div>
 
-    addMessage(question, "user");
-    input.value = "";
+                <button onclick="completeRegistration()" class="primary-btn">ยืนยันและเข้าสู่แพลตฟอร์ม</button>
+            </div>
 
-    const loading = addMessage(
-      "กำลังส่งคำถามไปยัง Gemini...",
-      "ai"
-    );
+            <p id="authError" class="error-text"></p>
+        </div>
+    </div>
 
-    sendButton.disabled = true;
-    input.disabled = true;
+    <!-- ส่วนที่ 2: หน้าจอโหลดแพลตฟอร์ม -->
+    <div id="loadingScreen" class="screen-overlay hidden">
+        <div class="loader-box">
+            <div class="spinner"></div>
+            <h3>กำลังโหลดแพลตฟอร์ม SCRIPT AI...</h3>
+            <p>กำลังเชื่อมต่อระบบประมวลผลอัจฉริยะและตั้งค่าพื้นที่ทำงานของคุณ</p>
+        </div>
+    </div>
 
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: question
-        })
-      });
+    <!-- ส่วนที่ 3: หน้าหลักแพลตฟอร์ม Script AI -->
+    <div id="mainPlatform" class="cyber-container hidden">
+        <header class="header">
+            <div class="brand">
+                <h1>⚡ SCRIPT AI</h1>
+                <span id="displayUser" class="user-badge">User</span>
+            </div>
+            <div class="header-actions">
+                <button onclick="toggleThemePanel()" class="icon-btn" title="ตั้งค่าสีหน้าเว็บ">🎨 ตั้งค่าสีเว็บ</button>
+            </div>
+        </header>
 
-      const data = await response.json();
+        <!-- แผงตั้งค่าเปลี่ยนสีหน้าเว็บ -->
+        <div id="themePanel" class="theme-panel hidden">
+            <h4>ปรับแต่งสีหน้าเว็บอิสระ</h4>
+            <div class="color-controls">
+                <label>สีหลัก (Accent): <input type="color" id="accentColorPicker" value="#38bdf8" onchange="updateTheme()"></label>
+                <label>สีพื้นหลัง (Background): <input type="color" id="bgColorPicker" value="#0b0f19" onchange="updateTheme()"></label>
+                <label>สีกล่องแชท (Surface): <input type="color" id="surfaceColorPicker" value="#111827" onchange="updateTheme()"></label>
+                <label>สีตัวอักษร (Text): <input type="color" id="textColorPicker" value="#e2e8f0" onchange="updateTheme()"></label>
+            </div>
+            <button onclick="resetTheme()" class="secondary-btn small">รีเซ็ตสีเริ่มต้น</button>
+        </div>
 
-      if (!response.ok) {
-        throw new Error(
-          data.details ||
-          data.error ||
-          "HTTP Error " + response.status
-        );
-      }
+        <!-- พื้นที่แชท -->
+        <main class="chat-container" id="chatContainer">
+            <div class="message ai-message">
+                <div class="avatar">🤖</div>
+                <div class="content">ยินดีต้อนรับสู่ <strong>Script AI</strong>! ระบบพร้อมทำงานแล้ว สามารถสั่งเขียนสคริปต์ Lua, Luau ผสมผสาน หรือให้ช่วยสร้างระบบต่างๆ ได้เลยครับ</div>
+            </div>
+        </main>
 
-      if (typeof data.reply !== "string" || !data.reply.trim()) {
-        throw new Error("Gemini ไม่ได้ส่งข้อความตอบกลับ");
-      }
+        <!-- ช่องพิมพ์ข้อความ -->
+        <footer class="input-container">
+            <textarea id="userInput" placeholder="พิมพ์คำสั่งให้ Script AI สร้างสคริปต์ หรือสอบถามข้อมูล..." rows="1" onkeydown="handleEnter(event)"></textarea>
+            <button id="sendBtn" onclick="sendMessage()">ส่งคำสั่ง</button>
+        </footer>
+    </div>
 
-      loading.textContent = data.reply;
-
-    } catch (error) {
-      console.error("Gemini Assistant:", error);
-
-      loading.textContent =
-        "ไม่สามารถรับคำตอบจาก Gemini ได้\n" +
-        error.message;
-
-    } finally {
-      sendButton.disabled = false;
-      input.disabled = false;
-      input.focus();
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-  }, true);
-})();
-</script>
+    <script src="app.js"></script>
 </body>
 </html>
