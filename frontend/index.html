@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>CYBER LAB OS</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon">CL</div><div><b>CYBER LAB OS</b><small>SECURITY LEARNING LAB</small></div></div>
+    <div class="nav-label">WORKSPACE</div>
+    <button class="nav active" data-page="overview">▦ <span>ภาพรวม</span></button>
+    <button class="nav" data-page="terminal">⌘ <span>Terminal</span></button>
+    <button class="nav" data-page="devices">▣ <span>อุปกรณ์จำลอง</span></button>
+    <button class="nav" data-page="security">◈ <span>Security Lab</span></button>
+    <button class="nav" data-page="editor">⌁ <span>Code Editor</span></button>
+    <div class="sidebar-bottom"><span class="dot"></span> Simulation mode active</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar"><div><span class="muted">Workspace /</span> <b id="page-title">ภาพรวม</b></div><div class="top-right"><span class="status"><i></i> ระบบพร้อมใช้งาน</span><div class="avatar">U</div></div></header>
+    <section class="page active-page" id="overview">
+      <div class="welcome"><div><div class="eyebrow">CYBERSECURITY LEARNING ENVIRONMENT</div><h1>ห้องทดลองของคุณ</h1><p>เรียนรู้ ตรวจสอบ และทดลองแนวคิดด้านความปลอดภัยในสภาพแวดล้อมจำลอง</p></div><div class="welcome-mark">⌬</div></div>
+      <div class="notice"><b>โหมดจำลอง</b><span>อุปกรณ์ เครือข่าย และผลการทดสอบใน V1 เป็นข้อมูลตัวอย่าง ไม่มีการเชื่อมต่อหรือควบคุมอุปกรณ์จริง</span></div>
+      <div class="cards">
+        <article class="stat"><span>อุปกรณ์จำลอง</span><strong>03</strong><small>ตัวอย่างในห้องทดลอง</small></article>
+        <article class="stat"><span>การตรวจสอบ</span><strong>08</strong><small>รายการตัวอย่าง</small></article>
+        <article class="stat"><span>สถานะระบบ</span><strong class="green">ปกติ</strong><small>พร้อมสำหรับการเรียนรู้</small></article>
+      </div>
+      <h2>เครื่องมือหลัก</h2>
+      <div class="tool-grid">
+        <button class="tool-card" data-goto="terminal"><b>⌘ Terminal</b><small>ทดลองคำสั่งจำลอง</small></button>
+        <button class="tool-card" data-goto="devices"><b>▣ Device Manager</b><small>ดูอุปกรณ์ตัวอย่าง</small></button>
+        <button class="tool-card" data-goto="security"><b>◈ Security Lab</b><small>เรียนรู้แนวคิดความปลอดภัย</small></button>
+        <button class="tool-card" data-goto="editor"><b>⌁ Code Editor</b><small>เขียนและตรวจโค้ดตัวอย่าง</small></button>
+      </div>
+    </section>
+
+    <section class="page" id="terminal">
+      <div class="section-head"><div><div class="eyebrow">COMMAND SIMULATOR</div><h1>Terminal</h1><p>รับเฉพาะคำสั่งตัวอย่างที่กำหนดไว้ ไม่มีการรันคำสั่งระบบปฏิบัติการจริง</p></div><span class="pill">SIMULATED</span></div>
+      <div class="terminal"><div class="term-bar"><span></span><span></span><span></span><label>cyberlab — simulator</label></div><div class="term-output" id="term-output">CYBER LAB OS Terminal Simulator v1.0<br>พิมพ์ <b>help</b> เพื่อดูคำสั่งที่รองรับ<br><br></div><form id="term-form" class="term-form"><span>lab@cyber:~$</span><input id="term-input" autocomplete="off" placeholder="พิมพ์ help แล้วกด Enter"><button>Run</button></form></div>
+    </section>
+
+    <section class="page" id="devices">
+      <div class="section-head"><div><div class="eyebrow">VIRTUAL ENVIRONMENT</div><h1>อุปกรณ์จำลอง</h1><p>อุปกรณ์ตัวอย่างสำหรับฝึกอ่านสถานะและทำความเข้าใจเครือข่าย</p></div><span class="pill">3 DEVICES</span></div>
+      <div class="device-list">
+        <article class="device"><div class="device-icon">▣</div><div class="device-info"><b>Android Lab 01</b><small>192.0.2.10 · Android Simulator</small></div><span class="tag online">Online · Demo</span></article>
+        <article class="device"><div class="device-icon">▤</div><div class="device-info"><b>Windows Lab 02</b><small>192.0.2.20 · Desktop Simulator</small></div><span class="tag online">Online · Demo</span></article>
+        <article class="device"><div class="device-icon">▥</div><div class="device-info"><b>Linux Lab 03</b><small>192.0.2.30 · Linux Simulator</small></div><span class="tag offline">Offline · Demo</span></article>
+      </div>
+      <p class="muted note">ช่วง IP 192.0.2.0/24 เป็นช่วงที่สงวนไว้สำหรับเอกสารและตัวอย่าง ไม่ใช่ที่อยู่เครื่องจริง</p>
+    </section>
+
+    <section class="page" id="security">
+      <div class="section-head"><div><div class="eyebrow">LEARNING MODULE</div><h1>Security Lab</h1><p>เรียนรู้แนวคิดช่องโหว่และแนวทางป้องกันผ่านตัวอย่างที่ไม่โจมตีระบบจริง</p></div><span class="pill">LEARNING</span></div>
+      <div class="learn-grid">
+        <article class="learn-card"><b>การยืนยันตัวตน</b><p>เรียนรู้การใช้รหัสผ่านที่ปลอดภัย การยืนยันหลายปัจจัย และการจัดการเซสชัน</p><span>Authentication</span></article>
+        <article class="learn-card"><b>การควบคุมสิทธิ์</b><p>ทำความเข้าใจหลัก least privilege และการตรวจสอบสิทธิ์ฝั่งเซิร์ฟเวอร์</p><span>Access Control</span></article>
+        <article class="learn-card"><b>ความปลอดภัย API</b><p>เรียนรู้การตรวจสอบข้อมูลนำเข้า การจำกัดอัตราคำขอ และการปกป้องข้อมูลลับ</p><span>API Security</span></article>
+        <article class="learn-card"><b>การตรวจสอบโค้ด</b><p>ฝึกอ่านโค้ดเพื่อหาข้อผิดพลาดและแก้ไขด้วยแนวทางที่ปลอดภัย</p><span>Code Review</span></article>
+      </div>
+    </section>
+
+    <section class="page" id="editor">
+      <div class="section-head"><div><div class="eyebrow">CODE WORKSPACE</div><h1>Code Editor</h1><p>พื้นที่ร่างโค้ดเบื้องต้น รุ่นนี้ยังไม่รันโค้ดที่ผู้ใช้ป้อน</p></div><span class="pill">EDITOR</span></div>
+      <div class="editor-wrap"><div class="editor-toolbar"><select id="language"><option>JavaScript</option><option>Python</option><option>Lua</option><option>Luau</option><option>Rust</option><option>Go</option><option>HTML</option><option>CSS</option></select><button id="save-code" class="secondary-btn">ดาวน์โหลดไฟล์</button></div><textarea id="code-area" spellcheck="false">// Welcome to CYBER LAB OS
+// เขียนโค้ดและบันทึกเป็นไฟล์เพื่อใช้งานต่อ
+
+function hello() {
+  return "Hello, Cyber Lab!";
+}</textarea></div>
+    </section>
+    <footer>CYBER LAB OS V1.0 · Learning and simulation environment</footer>
+  </main>
+
+  <button class="assistant-launcher" id="assistant-launcher" aria-label="เปิด Gemini Assistant"><span>✦</span></button>
+  <section class="assistant" id="assistant" aria-label="Gemini Assistant">
+    <header class="assistant-head"><div class="gemini-mark">✦</div><div><b>Gemini Assistant</b><small><i></i> ผู้ช่วยการใช้งาน CYBER LAB OS</small></div><button id="close-assistant" aria-label="ปิด">×</button></header>
+    <div class="chat-messages" id="chat-messages"><div class="bubble ai">สวัสดี! ฉันคือ Gemini Assistant ถามวิธีใช้งาน ขอคำแนะนำ หรือส่งข้อความแจ้งข้อผิดพลาดมาได้เลย</div></div>
+    <form id="chat-form" class="chat-form"><textarea id="chat-input" rows="1" placeholder="พิมพ์คำถาม..." maxlength="5000"></textarea><button id="send-chat" aria-label="ส่งข้อความ">➤</button></form>
+    <div class="chat-foot">คำตอบสร้างโดย Gemini · อย่าใส่รหัสผ่านหรือ API Key ในแชต</div>
+  </section>
+  <script src="/app.js"></script>
+</body>
+</html>
