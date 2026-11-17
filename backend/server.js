@@ -4,6 +4,9 @@ const cors = require('cors');
 const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
 
+npm install express cors dotenv @google/genai nodemailer
+
+
 const app = express();
 app.use(cors());
 app.use(express.json());
