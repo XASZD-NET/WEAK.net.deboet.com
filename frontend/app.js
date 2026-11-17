@@ -18,7 +18,10 @@ function showError(msg) {
 
 // 1. ส่งรหัส OTP
 async function sendOTP() {
-    const email = document.getElementById('regEmail').value.trim();
+    const emailInput = document.getElementById('regEmail');
+    if (!emailInput) return;
+    const email = emailInput.value.trim();
+    
     if (!email || !email.includes('@')) {
         return showError('กรุณากรอกอีเมลให้ถูกต้องก่อนดำเนินการ');
     }
@@ -39,9 +42,10 @@ async function sendOTP() {
             document.getElementById('stepOtp').classList.remove('hidden');
             document.getElementById('regOtp').focus();
         } else {
-            showError(data.error);
+            showError(data.error || 'ไม่สามารถส่ง OTP ได้');
         }
     } catch (err) {
+        console.error('Send OTP Error:', err);
         showError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อส่ง OTP ได้');
     }
 }
@@ -73,9 +77,10 @@ async function verifyOTP() {
             document.getElementById('stepOtp').classList.add('hidden');
             document.getElementById('stepDetails').classList.remove('hidden');
         } else {
-            showError(data.error);
+            showError(data.error || 'รหัส OTP ไม่ถูกต้อง');
         }
     } catch (err) {
+        console.error('Verify OTP Error:', err);
         showError('เกิดข้อผิดพลาดในการตรวจสอบ OTP');
     }
 }
@@ -119,9 +124,10 @@ async function completeRegistration() {
                 document.getElementById('displayUser').textContent = `👤 ${username}`;
             }, 2500);
         } else {
-            showError(data.error);
+            showError(data.error || 'ไม่สามารถลงทะเบียนได้');
         }
     } catch (err) {
+        console.error('Register Error:', err);
         showError('ไม่สามารถบันทึกข้อมูลสมาชิกได้');
     }
 }
@@ -163,6 +169,7 @@ async function sendMessage(isConfirmed = false) {
             appendMessage('⚠️ ' + (data.error || 'เกิดข้อผิดพลาดในการติดต่อ AI'), 'ai-message');
         }
     } catch (error) {
+        console.error('Chat Error:', error);
         appendMessage('⚠️ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้', 'ai-message');
     }
 }
@@ -239,4 +246,4 @@ function resetTheme() {
     document.getElementById('surfaceColorPicker').value = '#111827';
     document.getElementById('textColorPicker').value = '#e2e8f0';
     updateTheme();
-                                       }
+            }
